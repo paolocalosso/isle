@@ -47,6 +47,7 @@ import {TimerPage} from './pages/timer.js';
 import {UsagePage} from './pages/usage.js';
 import {ReminderWatcher} from './reminders.js';
 import * as Theme from './theme.js';
+import {CustomLook} from './custom.js';
 import {GREETING, InstalledApps, UNDO_MS, VoiceView, stopUnit, actionTypes, aiSettings, openSetUp, openSignIn, runActions, signInHint, stopPending, voiceContext} from './voice.js';
 import {autoHide, revealBand} from './visibilityRules.js';
 import {TextWriter} from './writer.js';
@@ -163,6 +164,11 @@ export class Controller {
         this._settings = extension.getSettings();
         // Before any view shows a time: 24 or 12 hours, or as GNOME's clock (Settings → Appearance → Clock).
         Format.setClockFormat(this._settings.get_string('clock-format'));
+        // Font and colours of one's own (custom.js), before the island first paints.
+        this._customLook = new CustomLook(extension, this._settings, () => {
+            if (this._island)
+                this._syncTheme();
+        });
         this._daemon = new Daemon();
         // Heard once everything listening is built (see `_connectAll`).
         this._daemon.hold();
@@ -2722,6 +2728,8 @@ export class Controller {
 
     /** Turns Isle off: agents' asks go back to their terminals, then all it built is torn down. */
     destroy() {
+        this._customLook?.destroy();
+        this._customLook = null;
         // Failed to start: what it built went then.
         if (this._failed)
             return;

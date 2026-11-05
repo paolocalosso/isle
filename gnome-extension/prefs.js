@@ -409,6 +409,7 @@ export default class IslePreferences extends ExtensionPreferences {
         waits();
         look.add(hideDelay);
         page.add(look);
+        page.add(customLookGroup(settings));
         page.add(pagesGroup(settings, window));
         page.add(appUsageGroup(settings, window));
         page.add(worldClocksGroup(settings, window));
@@ -782,6 +783,84 @@ function agentsFound() {
         {provider: 'claude', title: 'Claude Code', subtitle: 'Allow, deny or always allow, and when it is done'},
         {provider: 'codex', title: 'Codex', subtitle: 'Allow or deny, and when it is done · in Codex, type /hooks once and allow Isle'},
     ].filter(({provider}) => agents[provider]?.found);
+}
+
+/** Font and colours of one's own (local addition, see src/custom.js). */
+function customLookGroup(settings) {
+    const group = new Adw.PreferencesGroup({title: 'Font & Colours', description: 'The island\u2019s font, background and text colour.'});
+
+    const fontRow = new Adw.ActionRow({title: 'Font', subtitle: 'The family for all the island\u2019s text'});
+    const fontButton = new Gtk.FontDialogButton({
+        dialog: new Gtk.FontDialog({title: 'Island font'}),
+        level: Gtk.FontLevel.FAMILY, valign: Gtk.Align.CENTER, use_font: true,
+    });
+    const fontReset = new Gtk.Button({icon_name: 'edit-undo-symbolic', valign: Gtk.Align.CENTER,
+        tooltip_text: 'Back to Isle\u2019s own (Inter)', css_classes: ['flat']});
+    fontRow.add_suffix(fontButton);
+    fontRow.add_suffix(fontReset);
+    let syncingFont = false;
+    const syncFont = () => {
+        syncingFont = true;
+        const family = settings.get_string('custom-font') || 'Inter Variable';
+        fontButton.font_desc = Pango.FontDescription.from_string(family);
+        fontReset.sensitive = settings.get_string('custom-font') !== '';
+        syncingFont = false;
+    };
+    fontButton.connect('notify::font-desc', () => {
+        if (syncingFont)
+            return;
+        const family = fontButton.font_desc?.get_family() ?? '';
+        if (family !== settings.get_string('custom-font'))
+            settings.set_string('custom-font', family);
+    });
+    fontReset.connect('clicked', () => settings.reset('custom-font'));
+    group.add(fontRow);
+
+    const colours = switchRow(settings, 'custom-colors', 'Custom colours', 'Your own background and text colour instead of Isle\u2019s');
+    group.add(colours);
+
+    const colourRow = (key, title, subtitle) => {
+        const row = new Adw.ActionRow({title, subtitle});
+        const button = new Gtk.ColorDialogButton({
+            dialog: new Gtk.ColorDialog({title, with_alpha: false}), valign: Gtk.Align.CENTER,
+        });
+        row.add_suffix(button);
+        row.activatable_widget = button;
+        let syncing = false;
+        const sync = () => {
+            const rgba = new Gdk.RGBA();
+            if (rgba.parse(settings.get_string(key))) {
+                syncing = true;
+                button.rgba = rgba;
+                syncing = false;
+            }
+        };
+        button.connect('notify::rgba', () => {
+            if (syncing)
+                return;
+            const {red, green, blue} = button.rgba;
+            const hex = `#${[red, green, blue].map(v => Math.round(v * 255).toString(16).padStart(2, '0')).join('')}`;
+            if (hex !== settings.get_string(key))
+                settings.set_string(key, hex);
+        });
+        const id = settings.connect(`changed::${key}`, sync);
+        row.connect('destroy', () => settings.disconnect(id));
+        settings.bind('custom-colors', row, 'sensitive', Gio.SettingsBindFlags.GET);
+        sync();
+        return row;
+    };
+    group.add(colourRow('custom-background', 'Background', 'The island and, in shades of it, its buttons'));
+    group.add(colourRow('custom-foreground', 'Text', 'Text and icons; dimmed text stays dimmed'));
+
+    const reset = new Adw.ButtonRow({title: 'Reset font and colours'});
+    reset.connect('activated', () => ['custom-font', 'custom-colors', 'custom-background', 'custom-foreground']
+        .forEach(key => settings.reset(key)));
+    group.add(reset);
+
+    const fontId = settings.connect('changed::custom-font', syncFont);
+    fontRow.connect('destroy', () => settings.disconnect(fontId));
+    syncFont();
+    return group;
 }
 
 /** A switch bound to a boolean key. */

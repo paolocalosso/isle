@@ -386,5 +386,25 @@
       <default>true</default>
       <summary>Play a sound when a focus session or break ends, and for reminders</summary>
     </key>
+    <key name="custom-font" type="s">
+      <default>''</default>
+      <summary>Island font</summary>
+      <description>A font family for the island's text, or empty for Isle's own (Inter).</description>
+    </key>
+    <key name="custom-colors" type="b">
+      <default>false</default>
+      <summary>Use custom colours</summary>
+      <description>Paint the island with custom-background and its text with custom-foreground.</description>
+    </key>
+    <key name="custom-background" type="s">
+      <default>'#000000'</default>
+      <summary>Island background colour</summary>
+      <description>As #rrggbb. Buttons and fields take shades of it towards the text colour.</description>
+    </key>
+    <key name="custom-foreground" type="s">
+      <default>'#ffffff'</default>
+      <summary>Island text colour</summary>
+      <description>As #rrggbb; dimmed text keeps its dimming.</description>
+    </key>
   </schema>
 </schemalist>

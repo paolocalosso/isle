@@ -45,8 +45,21 @@ export function setTheme(name, tint = 0) {
     };
 }
 
-/** The look in use, glass with its tint. */
-const look = () => current === 'glass' ? tinted : LOOKS[current];
+/** A background colour of one's own (custom.js), as RGB 0..1, or null for the look's own. */
+let customBg = null;
+
+/** Sets the island's own background colour (RGB 0..1), or null to go back to the look's. */
+export function setCustomBackground(rgb) {
+    customBg = rgb ? [...rgb] : null;
+}
+
+/** The look in use, glass with its tint; with a background of one's own, that colour (glass keeps its alpha). */
+const look = () => {
+    const base = current === 'glass' ? tinted : LOOKS[current];
+    if (!customBg)
+        return base;
+    return {...base, fill: [...customBg, base.fill[3]], solid: [...customBg]};
+};
 
 /** Whether the island shows what is behind it (glass), with all on it made to match. */
 export function translucent() {
