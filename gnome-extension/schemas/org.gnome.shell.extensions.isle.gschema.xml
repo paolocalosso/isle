@@ -404,7 +404,32 @@
     <key name="custom-foreground" type="s">
       <default>'#ffffff'</default>
       <summary>Island text colour</summary>
-      <description>As #rrggbb; dimmed text keeps its dimming.</description>
+      <description>As #rrggbb; dimmed text keeps its dimming. Isle's white icons take it too.</description>
+    </key>
+    <key name="custom-border" type="b">
+      <default>false</default>
+      <summary>Island border</summary>
+      <description>Draw a border of custom-border-width and custom-border-color round the island.</description>
+    </key>
+    <key name="custom-border-width" type="i">
+      <range min="1" max="12"/>
+      <default>2</default>
+      <summary>Border width</summary>
+      <description>In pixels.</description>
+    </key>
+    <key name="custom-border-color" type="s">
+      <default>'#ffffff'</default>
+      <summary>Border colour</summary>
+      <description>As #rrggbb.</description>
+    </key>
+    <key name="custom-border-sides" type="s">
+      <choices>
+        <choice value="bottom"/>
+        <choice value="outline"/>
+      </choices>
+      <default>'bottom'</default>
+      <summary>Where the border runs</summary>
+      <description>bottom: along the bottom, fading round the corners. outline: the whole outline below the screen's top.</description>
     </key>
   </schema>
 </schemalist>

@@ -13,8 +13,10 @@ import St from 'gi://St';
 
 import * as Palette from './palette.js';
 import * as Theme from './theme.js';
+import {setIconTint} from './widgets.js';
 
-const KEYS = ['custom-font', 'custom-colors', 'custom-background', 'custom-foreground'];
+const KEYS = ['custom-font', 'custom-colors', 'custom-background', 'custom-foreground',
+    'custom-border', 'custom-border-width', 'custom-border-color', 'custom-border-sides'];
 const WHITE = [1, 1, 1];
 
 /** "#rgb" or "#rrggbb" as [r, g, b] in 0..1, or null. */
@@ -113,6 +115,12 @@ export class CustomLook {
 
         Theme.setCustomBackground(bg);
         Palette.WHITE.splice(0, 3, ...(fg ?? WHITE));
+        setIconTint(fg ? toHex(fg) : null);
+        Theme.setCustomBorder(this._settings.get_boolean('custom-border') ? {
+            color: parseHex(this._settings.get_string('custom-border-color')) ?? WHITE,
+            width: this._settings.get_int('custom-border-width'),
+            sides: this._settings.get_string('custom-border-sides'),
+        } : null);
 
         this._unload();
         if (!font && !on)
@@ -159,6 +167,8 @@ export class CustomLook {
         this._ids = [];
         this._unload();
         Theme.setCustomBackground(null);
+        Theme.setCustomBorder(null);
+        setIconTint(null);
         Palette.WHITE.splice(0, 3, ...WHITE);
     }
 }

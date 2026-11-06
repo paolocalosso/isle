@@ -787,7 +787,7 @@ function agentsFound() {
 
 /** Font and colours of one's own (local addition, see src/custom.js). */
 function customLookGroup(settings) {
-    const group = new Adw.PreferencesGroup({title: 'Font & Colours', description: 'The island\u2019s font, background and text colour.'});
+    const group = new Adw.PreferencesGroup({title: 'Font & Colours', description: 'The island\u2019s font, colours and border.'});
 
     const fontRow = new Adw.ActionRow({title: 'Font', subtitle: 'The family for all the island\u2019s text'});
     const fontButton = new Gtk.FontDialogButton({
@@ -845,15 +845,31 @@ function customLookGroup(settings) {
         });
         const id = settings.connect(`changed::${key}`, sync);
         row.connect('destroy', () => settings.disconnect(id));
-        settings.bind('custom-colors', row, 'sensitive', Gio.SettingsBindFlags.GET);
+        if (key !== 'custom-border-color')
+            settings.bind('custom-colors', row, 'sensitive', Gio.SettingsBindFlags.GET);
         sync();
         return row;
     };
     group.add(colourRow('custom-background', 'Background', 'The island and, in shades of it, its buttons'));
-    group.add(colourRow('custom-foreground', 'Text', 'Text and icons; dimmed text stays dimmed'));
+    group.add(colourRow('custom-foreground', 'Text & icons', 'Text and Isle\u2019s icons; dimmed text stays dimmed'));
 
-    const reset = new Adw.ButtonRow({title: 'Reset font and colours'});
-    reset.connect('activated', () => ['custom-font', 'custom-colors', 'custom-background', 'custom-foreground']
+    group.add(switchRow(settings, 'custom-border', 'Border', 'A coloured border on the island'));
+    const borderWidth = spinRow(settings, 'custom-border-width', 'Border width', 'In pixels', 1, 12);
+    settings.bind('custom-border', borderWidth, 'sensitive', Gio.SettingsBindFlags.GET);
+    group.add(borderWidth);
+    const borderColour = colourRow('custom-border-color', 'Border colour', 'Any colour, independent of the others');
+    settings.bind('custom-border', borderColour, 'sensitive', Gio.SettingsBindFlags.GET);
+    group.add(borderColour);
+    const borderSides = choiceRow(settings, 'custom-border-sides', 'Border sides', 'Where the border runs', [
+        ['bottom', 'Bottom only'],
+        ['outline', 'Whole outline'],
+    ]);
+    settings.bind('custom-border', borderSides, 'sensitive', Gio.SettingsBindFlags.GET);
+    group.add(borderSides);
+
+    const reset = new Adw.ButtonRow({title: 'Reset font, colours and border'});
+    reset.connect('activated', () => ['custom-font', 'custom-colors', 'custom-background', 'custom-foreground',
+        'custom-border', 'custom-border-width', 'custom-border-color', 'custom-border-sides']
         .forEach(key => settings.reset(key)));
     group.add(reset);
 

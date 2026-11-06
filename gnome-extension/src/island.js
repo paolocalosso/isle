@@ -127,11 +127,21 @@ if (edge.a > 0.0) {
     float a = mix(edgeAlpha.x, edgeAlpha.y, clamp(p.y / max(bottom, 0.001), 0.0, 1.0)) * band;
     color = vec4(edge.rgb, 1.0) * a + color * (1.0 - a);
 }
+if (border.a > 0.0) {
+    // A border of one's own (custom.js), border.a CSS pixels wide, inside the outline and never along the
+    // screen's top; borderMode 0: the bottom only (fading round the corners), 1: the whole outline.
+    vec3 rim = edgeMax(outlineBody(p), outlineBeside(p));
+    float a = cover * clamp((border.a - rim.x) * pixel + 0.5, 0.0, 1.0) * clamp(0.5 + (p.y - 1.0) * pixel, 0.0, 1.0);
+    if (borderMode < 0.5)
+        a *= smoothstep(0.35, 0.9, abs(rim.z));
+    color = vec4(borderColor.rgb, 1.0) * a * borderColor.a + color * (1.0 - a * borderColor.a);
+}
 cogl_color_out = color * cogl_color_in.a;
 `;
 
 /** The island's shape, drawn by the GPU as it changes (see `_syncShape`). */
-const ShapeFill = shaderEffect('ShapeFill', {frame: 4, body: 4, corner: 4, fill: 4, tint: 4, style: 1, edge: 4, edgeAlpha: 2},
+const ShapeFill = shaderEffect('ShapeFill', {frame: 4, body: 4, corner: 4, fill: 4, tint: 4, style: 1, edge: 4, edgeAlpha: 2,
+    border: 4, borderColor: 4, borderMode: 1},
     SHAPE_CODE, OUTLINE);
 
 // What the views draw, cut to the outline as the shape is (see SHAPE_CODE).
@@ -690,6 +700,7 @@ export const Island = GObject.registerClass({
         const [width, actorHeight] = this._shape.get_size();
         const tinted = this._tint && this._tintStyle !== 'aura';
         const edge = Theme.edge();
+        const border = Theme.border();
         this._fill.setUniforms({
             frame: [width, actorHeight, this._shape.get_resource_scale() || 1, 0],
             body: [left + shift, right + shift, top, height],
@@ -699,6 +710,9 @@ export const Island = GObject.registerClass({
             style: {wash: 1, glow: 2}[this._tintStyle] ?? 0,
             edge: edge ? [...edge.color, 1] : [0, 0, 0, 0],
             edgeAlpha: edge ? [edge.top, edge.bottom] : [0, 0],
+            border: [0, 0, 0, border ? border.width : 0],
+            borderColor: border ? [...border.color, 1] : [0, 0, 0, 0],
+            borderMode: border?.sides === 'outline' ? 1 : 0,
         });
     }
 

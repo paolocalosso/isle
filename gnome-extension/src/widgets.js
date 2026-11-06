@@ -100,9 +100,52 @@ export function icon(name) {
     name = ownName(name) ?? name;
     if (!icons.has(name)) {
         const file = iconDir?.get_child(`${name}.svg`);
-        icons.set(name, file?.query_exists(null) ? new Gio.FileIcon({file}) : new Gio.ThemedIcon({name}));
+        icons.set(name, file?.query_exists(null) ? new Gio.FileIcon({file: tinted(file) ?? file}) : new Gio.ThemedIcon({name}));
     }
     return icons.get(name);
+}
+
+// Local addition (custom.js): the bundled icons drawn in white (not `-symbolic`: their colour is in the file) in a
+// colour of one's own, as copies in the cache.
+let iconTint = null;
+
+/** A copy of the white icon `file` in the tint, or null (no tint, or not a white icon). */
+function tinted(file) {
+    if (!iconTint || file.get_basename().endsWith('-symbolic.svg'))
+        return null;
+    try {
+        const [, bytes] = file.load_contents(null);
+        const svg = new TextDecoder().decode(bytes);
+        if (!/#fff(fff)?\b|"white"/i.test(svg))
+            return null;
+        const dir = GLib.build_filenamev([GLib.get_user_cache_dir(), 'isle-custom', `icons-${iconTint.slice(1)}`]);
+        GLib.mkdir_with_parents(dir, 0o755);
+        const copy = Gio.File.new_for_path(GLib.build_filenamev([dir, file.get_basename()]));
+        if (!copy.query_exists(null)) {
+            const out = svg.replace(/#ffffff\b|#fff\b/gi, iconTint).replace(/"white"/gi, `"${iconTint}"`);
+            copy.replace_contents(new TextEncoder().encode(out), null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
+        }
+        return copy;
+    } catch (e) {
+        return null;
+    }
+}
+
+/** Draws the white bundled icons in `hex` ("#rrggbb"), or as they are for null; icons made after this follow,
+ * and `retintIcons` brings those on show along. */
+export function setIconTint(hex) {
+    iconTint = hex;
+    icons.clear();
+}
+
+/** Gives every bundled icon under `actor` the tint now set (see `setIconTint`). */
+export function retintIcons(actor) {
+    if (actor instanceof St.Icon && actor.gicon instanceof Gio.FileIcon) {
+        const name = actor.gicon.get_file().get_basename()?.replace(/\.svg$/, '');
+        if (name?.startsWith('isle-'))
+            actor.gicon = icon(name);
+    }
+    actor.get_children().forEach(retintIcons);
 }
 
 /** A label centred vertically in its row. */

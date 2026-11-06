@@ -48,6 +48,7 @@ import {UsagePage} from './pages/usage.js';
 import {ReminderWatcher} from './reminders.js';
 import * as Theme from './theme.js';
 import {CustomLook} from './custom.js';
+import {retintIcons} from './widgets.js';
 import {GREETING, InstalledApps, UNDO_MS, VoiceView, stopUnit, actionTypes, aiSettings, openSetUp, openSignIn, runActions, signInHint, stopPending, voiceContext} from './voice.js';
 import {autoHide, revealBand} from './visibilityRules.js';
 import {TextWriter} from './writer.js';
@@ -166,8 +167,10 @@ export class Controller {
         Format.setClockFormat(this._settings.get_string('clock-format'));
         // Font and colours of one's own (custom.js), before the island first paints.
         this._customLook = new CustomLook(extension, this._settings, () => {
-            if (this._island)
-                this._syncTheme();
+            if (!this._island)
+                return;
+            this._syncTheme();
+            retintIcons(this._island);
         });
         this._daemon = new Daemon();
         // Heard once everything listening is built (see `_connectAll`).

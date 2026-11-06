@@ -48,6 +48,19 @@ export function setTheme(name, tint = 0) {
 /** A background colour of one's own (custom.js), as RGB 0..1, or null for the look's own. */
 let customBg = null;
 
+/** A border of one's own ({color: RGB 0..1, width: CSS px, sides: 'bottom' | 'outline'}), or null. */
+let customBorder = null;
+
+/** Sets the island's own border, or null for none. */
+export function setCustomBorder(border) {
+    customBorder = border && border.width > 0 ? {...border, color: [...border.color]} : null;
+}
+
+/** The island's own border (see `setCustomBorder`), or null. */
+export function border() {
+    return customBorder;
+}
+
 /** Sets the island's own background colour (RGB 0..1), or null to go back to the look's. */
 export function setCustomBackground(rgb) {
     customBg = rgb ? [...rgb] : null;
