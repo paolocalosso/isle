@@ -62,7 +62,7 @@
       <description>From LRCLIB, by the song's title, artist and length.</description>
     </key>
     <key name="check-updates" type="b">
-      <default>true</default>
+      <default>false</default>
       <summary>Say when a newer Isle is out</summary>
       <description>Isle asks GitHub for its latest release at most once a day.</description>
     </key>

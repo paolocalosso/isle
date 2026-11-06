@@ -5,7 +5,7 @@
 # ISLE_VERSION=1.0.5 picks a release, ISLE_PACKAGE=<tarball> installs a downloaded one, ISLE_FORCE=1 any GNOME.
 set -euo pipefail
 
-REPO="zickrian/isle"
+REPO="paolocalosso/isle"
 ARCH="$(uname -m)"
 # A release just tagged may take a few minutes to get its files.
 RETRIES=6

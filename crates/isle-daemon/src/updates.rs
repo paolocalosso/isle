@@ -16,7 +16,7 @@ use zbus::{fdo, interface};
 use crate::clock::{now_ms, wait_until};
 use crate::store::Store;
 
-const LATEST: &str = "https://api.github.com/repos/zickrian/isle/releases/latest";
+const LATEST: &str = "https://api.github.com/repos/paolocalosso/isle/releases/latest";
 const EVERY_MS: i64 = 24 * 3600 * 1000;
 /// After a failed look (offline), the next is this much sooner.
 const RETRY_MS: i64 = 3600 * 1000;
